@@ -5,7 +5,9 @@ document.getElementById('field').onclick = function(e) {
 
 // Обработка правого щелчка мышью
 document.getElementById('field').oncontextmenu = function(e) {
-	var id = e.target.getAttribute('id');		
+	var id = e.target.getAttribute('id');	
+	view.mark(id, splitId(id));	
+	console.log(model.userView);
 	return false;
 }
 
@@ -39,16 +41,28 @@ function splitId(id) {
 // Объект отвечающий за графику
 var view = {
 	// отвечает за маркировку закрытой ячейки флагом
-	mark: function(postion) {
-		
+	mark: function(id, position) {
+		if (model.userView[position[0]][position[1]] === -1) {
+			// Если ячейка закрыта			
+			model.userView[position[0]][position[1]] = 1;
+
+			var cell = document.getElementById(id);
+			cell.classList.add('mark-cell');
+		} else if (model.userView[position[0]][position[1]] === 1) {
+			// Если ячейка маркирована
+			model.userView[position[0]][position[1]] = -1;
+			var cell = document.getElementById(id);
+			cell.classList.remove('mark-cell');
+		}
 	}
 }
 
 // Игровая логика и данные
 var model = {
-	row: 5, // Количество строк
-	col: 5, // Количество столбцов
-	mines: 13, // Количество мин на поле
+	row: 4, // Количество строк
+	col: 8, // Количество столбцов
+	mines: 10, // Количество мин на поле
+
 	/* 
 		Массив field содержит игровое поле.
 		0 - в ячейке мина
@@ -56,6 +70,7 @@ var model = {
 		-1 - в ячейке пусто и вокруг нет мин
 	*/
 	field: [],
+
 	/*
 		В массиве userView хранится то, как поле видит игрок
 		-1 - ячейка закрыта
@@ -63,8 +78,9 @@ var model = {
 		1  - на ячейке установлен флаг 
 	*/
 	userView: [],
-	// Метод filArray заполняет массивы field и userView значениями -1
-	filArray: function(row, col) { 
+
+	// Инициализируем массивы field и userView значениями -1. Заполняем игрове поле минами
+	filField: function(row, col, mines) {
 		for(var i = 0; i < row; i++) {	
 			this.field[i] = [];	
 			this.userView[i] = [];	
@@ -73,31 +89,30 @@ var model = {
 				this.userView[i][j] = - 1;		
 			}			
 		}
-	},
-	// Заполняем игрове поле 
-	filField: function(array, mines) {
+
 		// Располагаем мины в случайном месте
 		for (var i = 0; i < mines; i++) {
 			var x = -1; 
 			var y = -1; 
 			do {
-				x = Math.floor(Math.random() * array.length); // номер строки
-				y = Math.floor(Math.random() * array[0].length); // номер столбца				
-			} while (array[x][y] === 0); // Если в ячейке нет мины, помещаем ее туда
-			array[x][y] = 0;
+				x = Math.floor(Math.random() * row); // номер строки
+				y = Math.floor(Math.random() * col); // номер столбца				
+			} while (this.field[x][y] === 0); // Если в ячейке нет мины, помещаем ее туда
+			this.field[x][y] = 0;
 		}
+
 		// Определяем количество мин вокруг каждой ячейки
-		for (var i = 0; i < array.length; i++) {
-			for (var j = 0; j < array[0].length; j++) {
-				if (array[i][j] === 0) {
+		for (var i = 0; i < row; i++) {
+			for (var j = 0; j < col; j++) {
+				if (this.field[i][j] === 0) {
 					continue; // если в ячейке мина, количество мин вокруг не определяем
 				} else {
 					var count = 0; // счетчик мин
-					if (((i - 1 >= 0) && (i + 1 < array.length)) && ((j - 1 >= 0) && (j + 1 < array[0].length))) {
+					if (((i - 1 >= 0) && (i + 1 < row)) && ((j - 1 >= 0) && (j + 1 < col))) {
 						// Считаем количество мин вокруг, если ячейка не находится на внешнем ряду или строке 
 						for (var k = i - 1; k <= i + 1; k++){
 							for (var n = j - 1; n <= j + 1; n++) {								
-								if (array[k][n] === 0) count++;
+								if (this.field[k][n] === 0) count++;
 							}
 						}						
 					} else if (i - 1 < 0) {	
@@ -106,45 +121,45 @@ var model = {
 							// Для первой ячейки
 							for (var k = i; k <= i + 1; k++) {
 								for (var n = j; n <= j + 1; n++) {
-									if (array[k][n] === 0) count++;
+									if (this.field[k][n] === 0) count++;
 								}
 							}							
-						} else if (j + 1 === array[0].length) {
+						} else if (j + 1 === col) {
 							// Для последней ячейки 
 							for (var k = i; k <= i + 1; k++) {
 								for (var n = j - 1; n <= j; n++) {
-									if (array[k][n] === 0) count++;
+									if (this.field[k][n] === 0) count++;
 								}
 							}							
 						} else {
 							// Для остальных элементов первой строки
 							for (var k = i; k <= i + 1; k++) {
 								for (var n = j - 1; n <= j + 1; n++) {
-									if (array[k][n] === 0) count++;
+									if (this.field[k][n] === 0) count++;
 								}
 							}							
 						}
-					} else if (i + 1 === array.length) {
+					} else if (i + 1 === row) {
 						// Для последней строки
 						if (j - 1 < 0) {
 							// Для первой ячейки
 							for (var k = i - 1; k <= i; k++) {
 								for (var n = j; n <= j + 1; n++) {
-									if (array[k][n] === 0) count++;
+									if (this.field[k][n] === 0) count++;
 								}
 							}
-						} else if (j + 1 === array[0].length) {
+						} else if (j + 1 === col) {
 							// Для последней ячейки 
 							for (var k = i - 1; k <= i; k++){
 								for (var n = j - 1; n <= j; n++) {
-									if (array[k][n] === 0) count++;
+									if (this.field[k][n] === 0) count++;
 								}
 							}
 						} else {
 							// Для остальных элементов последней строки
 							for (var k = i - 1; k <= i; k++) {
 								for (var n = j - 1; n <= j + 1; n++) {
-									if (array[k][n] === 0) count++;
+									if (this.field[k][n] === 0) count++;
 								}
 							}
 						}
@@ -152,18 +167,18 @@ var model = {
 						// Для первого столбца (без 1й и последней ячейки)
 						for (var k = i - 1; k <= i + 1; k++) {
 							for (var n = j; n <= j + 1; n++) {
-								if (array[k][n] === 0) count++;
+								if (this.field[k][n] === 0) count++;
 							}
 						}
-					} else if (j + 1 === array[0].length) {
+					} else if (j + 1 === col) {
 						// Для последнего столбца (без 1й и последней ячейки)
 						for (var k = i - 1; k <= i + 1; k++) {
 							for (var n = j - 1; n <= j; n++) {
-								if (array[k][n] === 0) count++;
+								if (this.field[k][n] === 0) count++;
 							}
 						}
 					}
-					if (count !== 0) array[i][j] = count;
+					if (count !== 0) this.field[i][j] = count;
 				}
 			}
 		}
