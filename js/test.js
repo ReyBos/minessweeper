@@ -1,32 +1,7 @@
-model.filArray(model.row, model.col);
-model.filField(model.field, model.mines);
+model.filField(model.row, model.col, model.mines);
 console.log(model.field);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-var test = [[1, 0, 3, 4],
-			[1, 0, 3, 4],
-			[1, 0, 3, 4],
-			[1, 0, 3, 4],];
-
-if(test[-1][0]) {
-	console.log(true);
-} else {
-	console.log(false);
-}
-*/
+console.log(splitId("10-10"));
+console.log(splitId("1-10"));
+console.log(splitId("10-1"));
+console.log(splitId("1-1"));
