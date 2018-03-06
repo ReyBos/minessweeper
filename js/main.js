@@ -7,9 +7,7 @@ document.getElementById("field").onclick = function(e) {
 	// Если ячейка закрыта и без маркера, обрабатываем щелчок happenedBang = model.checkCell(splitId(id))
 	if (model.userView[position[0]][position[1]] === -1) {
 		score++;		
-		happenedBang = model.checkCell(position, id); // true - взрыв
-		console.log(score);
-		console.log(model.userView);
+		happenedBang = model.checkCell(position, id); // true - взрыв		
 	}
 }
 
@@ -130,6 +128,7 @@ var model = {
 	row: 10, // Количество строк
 	col: 10, // Количество столбцов
 	mines: 20, // Количество мин на поле
+	minesPosition: [], // Позиции мин
 
 	/* 
 		Массив field содержит игровое поле.
@@ -167,6 +166,7 @@ var model = {
 				y = Math.floor(Math.random() * col); // номер столбца				
 			} while (this.field[x][y] === 0); // Если в ячейке нет мины, помещаем ее туда
 			this.field[x][y] = 0;
+			this.minesPosition[i] = [x, y];
 		}
 
 		// Определяем количество мин вокруг каждой ячейки
@@ -257,7 +257,9 @@ var model = {
 		var cellContent = this.field[position[0]][position[1]];		
 		if (cellContent === 0) { // если есть мина
 			view.displayContent(cellContent, id); // Отображаем
-			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта				
+			this.userView[position[0]][position[1]]	= 0; // Отмечаем что эта ячейка открыта	
+			// Открываем остальные мины
+			this.openMines(this.minesPosition);
 			return true;
 		} else if (cellContent === -1) { // если пусто	
 			view.displayContent(cellContent, id); // Отображаем
@@ -267,6 +269,14 @@ var model = {
 			view.displayContent(cellContent, id); // Отображаем
 			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта	
 			return false;
+		}
+	},
+
+	openMines: function(minesPosition) {
+		for (var i = 0; i < minesPosition.length; i++) {
+			if (this.userView[minesPosition[i][0], [i][1] === 0]) continue; // Для пропуска первой открытой мины
+			var id = minesPosition[i][0] + "-" + minesPosition[i][1];
+			view.displayContent(0, id); // первый аргумент сообщает что это мина
 		}
 	}
 }
