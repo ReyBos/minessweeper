@@ -1,11 +1,21 @@
 // Обработка левого щелчка мышью
-document.getElementById('field').onclick = function(e) {
-	var id = e.target.getAttribute('id');	
+var score = 0; // Количество ходов
+document.getElementById("field").onclick = function(e) {
+	var id = e.target.getAttribute("id");	
+	var happenedBang;	
+	var position = splitId(id);
+	// Если ячейка закрыта и без маркера, обрабатываем щелчок happenedBang = model.checkCell(splitId(id))
+	if (model.userView[position[0]][position[1]] === -1) {
+		score++;		
+		happenedBang = model.checkCell(position, id); // true - взрыв
+		console.log(score);
+		console.log(model.userView);
+	}
 }
 
 // Обработка правого щелчка мышью
-document.getElementById('field').oncontextmenu = function(e) {
-	var id = e.target.getAttribute('id');	
+document.getElementById("field").oncontextmenu = function(e) {
+	var id = e.target.getAttribute("id");	
 	view.mark(id, splitId(id));		
 	return false;
 }
@@ -19,14 +29,14 @@ function splitId(id) {
 	var countCol = 0;
 	// Находим из скольки символов состоит номер строки и столбца
 	for (var i = 0; i < id.length; i++) {
-		if (id.charAt(i) !== '-') {			
+		if (id.charAt(i) !== "-") {			
 			countRow++;
 		} else {
 			break;
 		}		
 	}
 	for (var j = id.length - 1; j > 0; j--) {
-		if (id.charAt(j) !== '-') {			
+		if (id.charAt(j) !== "-") {			
 			countCol++
 		} else {
 			break;
@@ -49,26 +59,68 @@ var view = {
 			msg = "";
 			msg += "<div class=\"row\">";
 			for (var j = 0; j < col; j++) {				
-				msg += "<div class=\"cell hidden-cell\" id=\"" + i + "-" + j + "\"><span class=\"text\" oncontextmenu=\"return false\"></span></div>";
+				msg += "<div class=\"cell hidden-cell\" id=\"" + i + "-" + j + "\"></div>";
 			}
 			msg += "</div>"
 			table.innerHTML += msg;
 		}
 	},
 
-	// отвечает за маркировку закрытой ячейки флагом
+	// Отображает содержимое ячейки
+	displayContent: function(content, id) {
+		var cell = document.getElementById(id);
+		if (content === 0) { // отображаем мину			
+			cell.classList.remove("hidden-cell");
+			cell.classList.add("mine");
+		} else if (content === -1) { // отображаем пустое поле		
+			cell.classList.remove("hidden-cell");
+		} else { // отображаем число		
+			var msg = "";
+			switch(content) {				
+				case 1:
+					num = 1;
+					break;
+				case 2:
+					num = 2;
+					break;
+				case 3:
+					num = 3;
+					break;
+				case 4:
+					num = 4;
+					break;
+				case 5:
+					num = 5;
+					break;
+				case 6:
+					num = 6;
+					break;
+				case 7:
+					num = 7;
+					break;
+				case 8:
+					num = 8;
+					break;
+			}
+			msg = "<span class=\"text text-" + num + "\" oncontextmenu=\"return false\">" + num + "</span>";
+			cell.innerHTML = msg;
+			cell.classList.remove("hidden-cell");			
+		}
+	},
+
+	// Отвечает за маркировку закрытой ячейки флагом
 	mark: function(id, position) {
 		if (model.userView[position[0]][position[1]] === -1) {
 			// Если ячейка закрыта			
 			model.userView[position[0]][position[1]] = 1;
 
 			var cell = document.getElementById(id);
-			cell.classList.add('mark-cell');
+			cell.classList.add("mark-cell");
 		} else if (model.userView[position[0]][position[1]] === 1) {
 			// Если ячейка маркирована
 			model.userView[position[0]][position[1]] = -1;
 			var cell = document.getElementById(id);
-			cell.classList.remove('mark-cell');
+			cell.classList.remove("mark-cell");
 		}
 	}
 }
@@ -77,7 +129,7 @@ var view = {
 var model = {
 	row: 10, // Количество строк
 	col: 10, // Количество столбцов
-	mines: 10, // Количество мин на поле
+	mines: 20, // Количество мин на поле
 
 	/* 
 		Массив field содержит игровое поле.
@@ -197,6 +249,24 @@ var model = {
 					if (count !== 0) this.field[i][j] = count;
 				}
 			}
+		}
+	},
+
+	// Проверяем есть ли мина в данной ячейке и отображаем ее содержимое
+	checkCell: function(position, id) {
+		var cellContent = this.field[position[0]][position[1]];		
+		if (cellContent === 0) { // если есть мина
+			view.displayContent(cellContent, id); // Отображаем
+			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта				
+			return true;
+		} else if (cellContent === -1) { // если пусто	
+			view.displayContent(cellContent, id); // Отображаем
+			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта			
+			return false;
+		} else { // если число			
+			view.displayContent(cellContent, id); // Отображаем
+			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта	
+			return false;
 		}
 	}
 }
