@@ -55,6 +55,10 @@ body {
 	transition: all 0.08s;
 }
 
+.mine {
+	background: url(../img/mine.jpg) center center/ contain no-repeat;
+}
+
 .text {
 	cursor: default;
 }
