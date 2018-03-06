@@ -6,8 +6,29 @@ document.getElementById("field").onclick = function(e) {
 	var position = splitId(id);
 	// Если ячейка закрыта и без маркера, обрабатываем щелчок happenedBang = model.checkCell(splitId(id))
 	if (model.userView[position[0]][position[1]] === -1) {
+		// Если после первого щелчка должна открыться мина, то меняем её с первой свободной 
+		// от мины клеткой и перестраиваем field
+		if ((score === 0) && (model.field[position[0]][position[1]] === 0)) {
+			// ищем первую свободную от мины ячейку
+			var rowBlank;
+			var colBlank;
+			outer: for (var i = 0; i < model.field.length; i++) {
+				for (var j = 0; j < model.field[i].length; j++) {
+					if ((model.field[i][j] === -1) || (model.field[i][j] > 0)) {
+						rowBlank = i;
+						colBlank = j;
+						break outer;
+					}
+				}
+			}
+			// помещаем в нее мину, обнуляем массив мин и делаем для ячеек пересчет количества мин вокруг
+			model.field[rowBlank][colBlank] = 0;
+			model.field[position[0]][position[1]] = -1;	
+			model.minesPosition = [];
+			model.countMines(model.field);		
+		}
 		score++;		
-		happenedBang = model.checkCell(position, id); // true - взрыв		
+		happenedBang = model.checkCell(position, id); // true - взрыв				
 	}
 }
 
@@ -125,9 +146,9 @@ var view = {
 
 // Игровая логика и данные
 var model = {
-	row: 10, // Количество строк
-	col: 10, // Количество столбцов
-	mines: 20, // Количество мин на поле
+	row: 5, // Количество строк
+	col: 5, // Количество столбцов
+	mines: 11, // Количество мин на поле
 	minesPosition: [], // Позиции мин
 
 	/* 
@@ -165,14 +186,21 @@ var model = {
 				x = Math.floor(Math.random() * row); // номер строки
 				y = Math.floor(Math.random() * col); // номер столбца				
 			} while (this.field[x][y] === 0); // Если в ячейке нет мины, помещаем ее туда
-			this.field[x][y] = 0;
-			this.minesPosition[i] = [x, y];
+			this.field[x][y] = 0;			
 		}
 
 		// Определяем количество мин вокруг каждой ячейки
+		this.countMines(this.field);
+	},
+
+	// Определяем количество мин вокруг каждой ячейки
+	countMines: function(field) {
+		var row = field.length;
+		var col = field[0].length;			
 		for (var i = 0; i < row; i++) {
 			for (var j = 0; j < col; j++) {
-				if (this.field[i][j] === 0) {
+				if (field[i][j] === 0) {					
+					this.minesPosition.push([i, j]); // позиции мин					
 					continue; // если в ячейке мина, количество мин вокруг не определяем
 				} else {
 					var count = 0; // счетчик мин
@@ -180,7 +208,7 @@ var model = {
 						// Считаем количество мин вокруг, если ячейка не находится на внешнем ряду или строке 
 						for (var k = i - 1; k <= i + 1; k++){
 							for (var n = j - 1; n <= j + 1; n++) {								
-								if (this.field[k][n] === 0) count++;
+								if (field[k][n] === 0) count++;
 							}
 						}						
 					} else if (i - 1 < 0) {	
@@ -189,21 +217,21 @@ var model = {
 							// Для первой ячейки
 							for (var k = i; k <= i + 1; k++) {
 								for (var n = j; n <= j + 1; n++) {
-									if (this.field[k][n] === 0) count++;
+									if (field[k][n] === 0) count++;
 								}
 							}							
 						} else if (j + 1 === col) {
 							// Для последней ячейки 
 							for (var k = i; k <= i + 1; k++) {
 								for (var n = j - 1; n <= j; n++) {
-									if (this.field[k][n] === 0) count++;
+									if (field[k][n] === 0) count++;
 								}
 							}							
 						} else {
 							// Для остальных элементов первой строки
 							for (var k = i; k <= i + 1; k++) {
 								for (var n = j - 1; n <= j + 1; n++) {
-									if (this.field[k][n] === 0) count++;
+									if (field[k][n] === 0) count++;
 								}
 							}							
 						}
@@ -213,21 +241,21 @@ var model = {
 							// Для первой ячейки
 							for (var k = i - 1; k <= i; k++) {
 								for (var n = j; n <= j + 1; n++) {
-									if (this.field[k][n] === 0) count++;
+									if (field[k][n] === 0) count++;
 								}
 							}
 						} else if (j + 1 === col) {
 							// Для последней ячейки 
 							for (var k = i - 1; k <= i; k++){
 								for (var n = j - 1; n <= j; n++) {
-									if (this.field[k][n] === 0) count++;
+									if (field[k][n] === 0) count++;
 								}
 							}
 						} else {
 							// Для остальных элементов последней строки
 							for (var k = i - 1; k <= i; k++) {
 								for (var n = j - 1; n <= j + 1; n++) {
-									if (this.field[k][n] === 0) count++;
+									if (field[k][n] === 0) count++;
 								}
 							}
 						}
@@ -235,18 +263,18 @@ var model = {
 						// Для первого столбца (без 1й и последней ячейки)
 						for (var k = i - 1; k <= i + 1; k++) {
 							for (var n = j; n <= j + 1; n++) {
-								if (this.field[k][n] === 0) count++;
+								if (field[k][n] === 0) count++;
 							}
 						}
 					} else if (j + 1 === col) {
 						// Для последнего столбца (без 1й и последней ячейки)
 						for (var k = i - 1; k <= i + 1; k++) {
 							for (var n = j - 1; n <= j; n++) {
-								if (this.field[k][n] === 0) count++;
+								if (field[k][n] === 0) count++;
 							}
 						}
 					}
-					if (count !== 0) this.field[i][j] = count;
+					if (count !== 0) field[i][j] = count;
 				}
 			}
 		}
