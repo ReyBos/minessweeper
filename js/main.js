@@ -6,8 +6,7 @@ document.getElementById('field').onclick = function(e) {
 // Обработка правого щелчка мышью
 document.getElementById('field').oncontextmenu = function(e) {
 	var id = e.target.getAttribute('id');	
-	view.mark(id, splitId(id));	
-	console.log(model.userView);
+	view.mark(id, splitId(id));		
 	return false;
 }
 
@@ -40,6 +39,23 @@ function splitId(id) {
 
 // Объект отвечающий за графику
 var view = {
+	// Построение игрового поля в браузере передаем методу аргумент model.field	
+	displayField: function(field) {
+		var row = field.length;
+		var col = field[0].length;		
+		var msg;
+		var table = document.getElementById("field");
+		for (var i = 0; i < row; i++) {
+			msg = "";
+			msg += "<div class=\"row\">";
+			for (var j = 0; j < col; j++) {				
+				msg += "<div class=\"cell hidden-cell\" id=\"" + i + "-" + j + "\"><span class=\"text\" oncontextmenu=\"return false\"></span></div>";
+			}
+			msg += "</div>"
+			table.innerHTML += msg;
+		}
+	},
+
 	// отвечает за маркировку закрытой ячейки флагом
 	mark: function(id, position) {
 		if (model.userView[position[0]][position[1]] === -1) {
@@ -59,8 +75,8 @@ var view = {
 
 // Игровая логика и данные
 var model = {
-	row: 4, // Количество строк
-	col: 8, // Количество столбцов
+	row: 10, // Количество строк
+	col: 10, // Количество столбцов
 	mines: 10, // Количество мин на поле
 
 	/* 
