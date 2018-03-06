@@ -9,6 +9,41 @@ document.getElementById('field').oncontextmenu = function(e) {
 	return false;
 }
 
+// Получаем массив с номером строки и столбца из ID элемента
+function splitId(id) {
+	var position = [];
+	var row; // номер строки
+	var countRow = 0;
+	var col; // номер столбца
+	var countCol = 0;
+	// Находим из скольки символов состоит номер строки и столбца
+	for (var i = 0; i < id.length; i++) {
+		if (id.charAt(i) !== '-') {			
+			countRow++;
+		} else {
+			break;
+		}		
+	}
+	for (var j = id.length - 1; j > 0; j--) {
+		if (id.charAt(j) !== '-') {			
+			countCol++
+		} else {
+			break;
+		}
+	}
+	position[0] = id.substring(0, countRow);
+	position[1] = id.substring((id.length - countCol), id.length);
+	return position;
+}
+
+// Объект отвечающий за графику
+var view = {
+	// отвечает за маркировку закрытой ячейки флагом
+	mark: function(postion) {
+		
+	}
+}
+
 // Игровая логика и данные
 var model = {
 	row: 5, // Количество строк
@@ -40,7 +75,7 @@ var model = {
 		}
 	},
 	// Заполняем игрове поле 
-	filField: function (array, mines) {
+	filField: function(array, mines) {
 		// Располагаем мины в случайном месте
 		for (var i = 0; i < mines; i++) {
 			var x = -1; 
