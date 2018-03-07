@@ -1,24 +1,41 @@
 // Обработка левого щелчка мышью
 var score = 0; // Количество ходов
+var happenedBang = false; // Взорвалась бомба
+var countOpenCells = 0;
+var win = false; // Игрок победил
+
+// Обработка левого щелчка мыши
 document.getElementById("field").onclick = function(e) {
-	var id = e.target.getAttribute("id");		
-	var happenedBang;	
-	var position = splitId(id);	
-	// Если ячейка закрыта и без маркера, обрабатываем щелчок
-	if (model.userView[position[0]][position[1]] === -1) {		
-		// После первого щелчка по ячейке заполняем поле минами, вокруг этой ячейки мин не будет
-		if (score === 0) {								
-			model.addMines(model.mines, model.field, position);				
+	var id = e.target.getAttribute("id");	
+	if (id && !happenedBang && !win) { // у span нет айди и при клике на него id undefined			
+		var position = splitId(id);	
+		// Если ячейка закрыта и без маркера, обрабатываем щелчок
+		if (model.userView[position[0]][position[1]] === -1) {		
+			// После первого щелчка по ячейке заполняем поле минами, вокруг этой ячейки мин не будет
+			if (score === 0) {								
+				model.addMines(model.mines, model.field, position);				
+			}
+			happenedBang = model.checkCell(position, id); // true - взрыв	
+			if (happenedBang) {
+				alert("Booooooooom!")
+			} else {
+				score++;	
+				document.getElementById("score").innerHTML = score;
+				win = model.checkWin();
+				if (win) {
+					alert("Congratulations, you won!")
+				}
+			}				
 		}
-		happenedBang = model.checkCell(position, id); // true - взрыв			
-		score++;		
-	}
+	}	
 }
 
 // Обработка правого щелчка мышью
 document.getElementById("field").oncontextmenu = function(e) {
-	var id = e.target.getAttribute("id");	
-	view.mark(id, splitId(id));
+	var id = e.target.getAttribute("id");
+	if (id && !happenedBang && !win) {			
+		view.mark(id, splitId(id));
+	}	
 	return false;
 }
 
@@ -66,6 +83,7 @@ var view = {
 			msg += "</div>"
 			table.innerHTML += msg;
 		}
+		table.innerHTML += "<p class=\"game-info-content\">Field size: " + row + " x " + col + "</p><p class=\"game-info-content\">the number of mines: " + model.mines + "</p>";
 	},
 
 	// Отображает содержимое ячейки
@@ -129,10 +147,14 @@ var view = {
 
 // Игровая логика и данные
 var model = {
-	row: 16, // Количество строк
-	col: 16, // Количество столбцов
-	mines: 40, // Количество мин на поле
-	minesPosition: [], // Позиции мин
+	row: 10, // Количество строк
+	col: 10, // Количество столбцов
+	mines: 10, // Количество мин на поле
+	minesPosition: [], // Позиции мин	
+	checkWin: function() { // Проверяем выиграл ли игрок
+		if ((this.row * this.col - countOpenCells) === this.mines)
+			return true;
+	},
 
 	/* 
 		Массив field содержит игровое поле.
@@ -301,6 +323,7 @@ var model = {
 		} else if (cellContent === -1) { // если пусто	
 			view.displayContent(cellContent, id); // Отображаем
 			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта
+			countOpenCells++;
 			// Теперь нужно открыть все пустые примыкающие ячейки, открывать их нужно до тех пор
 			// пока вокруг пустых ячеек не образуется "кольцо" из чисел
 			this.displayAroundEmptyCell(this.field, position);			
@@ -308,6 +331,7 @@ var model = {
 		} else { // если число			
 			view.displayContent(cellContent, id); // Отображаем
 			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта	
+			countOpenCells++;
 			return false;
 		}
 	},
@@ -365,7 +389,7 @@ var model = {
 				// последняя ячейка последней строки
 				// Начало и конец квадрата проверки
 				startRow = centerRow - 1;
-				endRow = centerRow;			
+				endRow = centerRow;		 	
 				startCol = centerCol - 1;
 				endCol = centerCol;
 				this.cycleForDisplayAroundEmptyCell(startRow, endRow, startCol, endCol, field);					
@@ -413,9 +437,11 @@ var model = {
 				if (field[i][j] > 0) {
 					view.displayContent(field[i][j], id);
 					this.userView[i][j] = 0;
+					countOpenCells++;
 				} else if (field[i][j] === -1) {
 					view.displayContent(field[i][j], id);
 					this.userView[i][j] = 0;
+					countOpenCells++;
 					this.displayAroundEmptyCell(field, [i, j])
 				}
 			}
