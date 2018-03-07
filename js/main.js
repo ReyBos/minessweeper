@@ -1,32 +1,16 @@
 // Обработка левого щелчка мышью
 var score = 0; // Количество ходов
 document.getElementById("field").onclick = function(e) {
-	var id = e.target.getAttribute("id");	
+	var id = e.target.getAttribute("id");		
 	var happenedBang;	
-	var position = splitId(id);
-	// Если ячейка закрыта и без маркера, обрабатываем щелчок happenedBang = model.checkCell(splitId(id))
-	if (model.userView[position[0]][position[1]] === -1) {
-		// Если после первого щелчка должна открыться мина, то меняем её с первой свободной 
-		// от мины клеткой и перестраиваем field
-		if ((score === 0) && (model.field[position[0]][position[1]] === 0)) {
-			// ищем первую свободную от мины ячейку
-			var rowBlank;
-			var colBlank;
-			outer: for (var i = 0; i < model.field.length; i++) {
-				for (var j = 0; j < model.field[i].length; j++) {
-					if ((model.field[i][j] === -1) || (model.field[i][j] > 0)) {
-						rowBlank = i;
-						colBlank = j;
-						break outer;
-					}
-				}
-			}
-			// помещаем в нее мину, обнуляем массив мин и делаем для ячеек пересчет количества мин вокруг
-			model.field[rowBlank][colBlank] = 0;
-			model.field[position[0]][position[1]] = -1;	
-			model.minesPosition = [];
-			model.countMines(model.field);		
-		}
+	var position = splitId(id);	
+	// Если ячейка закрыта и без маркера, обрабатываем щелчок
+	if (model.userView[position[0]][position[1]] === -1) {		
+		// После первого щелчка по ячейке заполняем поле минами, вокруг этой ячейки мин не будет
+			if (score === 0) {								
+			model.addMines(model.mines, model.field, position);	
+			console.log(model.field);
+		}		
 		score++;		
 		happenedBang = model.checkCell(position, id); // true - взрыв				
 	}
@@ -146,9 +130,9 @@ var view = {
 
 // Игровая логика и данные
 var model = {
-	row: 5, // Количество строк
-	col: 5, // Количество столбцов
-	mines: 11, // Количество мин на поле
+	row: 9, // Количество строк
+	col: 9, // Количество столбцов
+	mines: 25, // Количество мин на поле
 	minesPosition: [], // Позиции мин
 
 	/* 
@@ -167,8 +151,8 @@ var model = {
 	*/
 	userView: [],
 
-	// Инициализируем массивы field и userView значениями -1. Заполняем игрове поле минами
-	filField: function(row, col, mines) {
+	// Инициализируем массивы field и userView значениями -1. 
+	filField: function(row, col) {
 		for(var i = 0; i < row; i++) {	
 			this.field[i] = [];	
 			this.userView[i] = [];	
@@ -176,21 +160,47 @@ var model = {
 				this.field[i][j] = -1;	
 				this.userView[i][j] = - 1;		
 			}			
-		}
+		}		
+	},
 
-		// Располагаем мины в случайном месте
-		for (var i = 0; i < mines; i++) {
-			var x = -1; 
-			var y = -1; 
+	// Добавляем мины на поле 
+	addMines: function(mines, field, firstCell) { 		
+		var row = field.length;		
+		var col = field[0].length;			
+		var emptyCells = this.freeMinesCell(firstCell);		
+		// Располагаем мины в случайном месте		
+		for (var i = 0; i < mines; i++) {			
+			var x; 
+			var y; 			
 			do {
+				var test = false;
 				x = Math.floor(Math.random() * row); // номер строки
-				y = Math.floor(Math.random() * col); // номер столбца				
-			} while (this.field[x][y] === 0); // Если в ячейке нет мины, помещаем ее туда
-			this.field[x][y] = 0;			
-		}
-
+				y = Math.floor(Math.random() * col); // номер столбца
+				// Проверяем не лежат ли эти координаты в "пустом диапазоне"				
+				for (var j = 0; j < emptyCells.length; j++) {
+					if ((x === emptyCells[j][0]) && (y === emptyCells[j][1])) {
+						test = true;
+						break;
+					}
+				}
+			} while ((field[x][y] === 0) || test); // Если в ячейке нет мины, помещаем ее туда			
+			field[x][y] = 0;
+		}		
 		// Определяем количество мин вокруг каждой ячейки
-		this.countMines(this.field);
+		this.countMines(field);
+	},
+
+	// Вокруг ячейки по которой кликнули первой не будет мин
+	freeMinesCell: function(firstCell) {		
+		var emptyCells = [];
+		var row = Number(firstCell[0]);
+		var col = Number(firstCell[1]);
+		for (var i = (row - 1); i <= (row + 1); i++) {
+			for (var j = (col - 1); j <= (col + 1); j++) {
+				emptyCells.push([i, j]);
+			}
+		}	
+		return emptyCells;
 	},
 
 	// Определяем количество мин вокруг каждой ячейки

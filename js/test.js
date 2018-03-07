@@ -1,16 +1,13 @@
-model.filField(model.row, model.col, model.mines);
-console.log(model.field);
-
-/*
-console.log(splitId("10-10"));
-console.log(splitId("1-10"));
-console.log(splitId("10-1"));
-console.log(splitId("1-1"));
-*/
-/*
-var msg = "<div class=\"row\"><div class=\"cell hidden-cell\" id=\"4-0\"><span class=\"text-7 text\" oncontextmenu=\"return false\"></span></div><div class=\"cell hidden-cell\" id=\"4-1\"><span class=\"text-7 text\" oncontextmenu=\"return false\"></span></div></div>"
-var table = document.getElementById('field');
-table.innerHTML += msg;
-*/
+model.filField(model.row, model.col);
+// console.log(model.field);
 
 view.displayField(model.field);
+
+/*
+for (i = 0; i < 10; i++) {
+	for (j = 0; j < 10; j++) {
+		console.log(model.freeMinesCell([i, j]));
+	}
+}*/
+
+
