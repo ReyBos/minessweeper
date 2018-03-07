@@ -7,12 +7,11 @@ document.getElementById("field").onclick = function(e) {
 	// Если ячейка закрыта и без маркера, обрабатываем щелчок
 	if (model.userView[position[0]][position[1]] === -1) {		
 		// После первого щелчка по ячейке заполняем поле минами, вокруг этой ячейки мин не будет
-			if (score === 0) {								
-			model.addMines(model.mines, model.field, position);	
-			console.log(model.field);
-		}		
+		if (score === 0) {								
+			model.addMines(model.mines, model.field, position);				
+		}
+		happenedBang = model.checkCell(position, id); // true - взрыв			
 		score++;		
-		happenedBang = model.checkCell(position, id); // true - взрыв				
 	}
 }
 
@@ -130,9 +129,9 @@ var view = {
 
 // Игровая логика и данные
 var model = {
-	row: 9, // Количество строк
-	col: 9, // Количество столбцов
-	mines: 25, // Количество мин на поле
+	row: 16, // Количество строк
+	col: 16, // Количество столбцов
+	mines: 40, // Количество мин на поле
 	minesPosition: [], // Позиции мин
 
 	/* 
@@ -301,7 +300,10 @@ var model = {
 			return true;
 		} else if (cellContent === -1) { // если пусто	
 			view.displayContent(cellContent, id); // Отображаем
-			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта			
+			this.userView[position[0]][position[1]]	= 0; // отмечаем что эта ячейка открыта
+			// Теперь нужно открыть все пустые примыкающие ячейки, открывать их нужно до тех пор
+			// пока вокруг пустых ячеек не образуется "кольцо" из чисел
+			this.displayAroundEmptyCell(this.field, position);			
 			return false;
 		} else { // если число			
 			view.displayContent(cellContent, id); // Отображаем
@@ -316,5 +318,162 @@ var model = {
 			var id = minesPosition[i][0] + "-" + minesPosition[i][1];
 			view.displayContent(0, id); // первый аргумент сообщает что это мина
 		}
-	}
+	}, 
+
+	// Откываем ячейки вокруг пустой
+	displayAroundEmptyCell: function(field, emptyCellPosition) {
+		// Открытая пустая ячейка является центром квадрата 3х3 вокруг которого проверяем какие ячейки открыть
+		// Если соседняя ячейка пустая, то выполняем для нее эту же функцию
+		var centerRow = Number(emptyCellPosition[0]);
+		var centerCol = Number(emptyCellPosition[1]);
+		if (centerRow - 1 < 0) {			
+			if (centerCol - 1 < 0) {
+				// первая ячейка первой строки
+				for (var i = centerRow; i <= centerRow + 1; i++) {
+					for (var j = centerCol; j <= centerCol + 1; j++) {
+						var id = i + "-" + j;
+						if (this.userView[i][j] === 0) continue;
+						if (field[i][j] > 0) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+						} else if (field[i][j] === -1) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+							this.displayAroundEmptyCell(field, [i, j])
+						}
+					}
+				}
+			} else if (centerCol + 1 === field[0].length) {
+				// последняя ячейка первой строки
+				for (var i = centerRow; i <= centerRow + 1; i++) {
+					for (var j = centerCol; j >= centerCol - 1; j--) {
+						var id = i + "-" + j;
+						if (this.userView[i][j] === 0) continue;
+						if (field[i][j] > 0) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+						} else if (field[i][j] === -1) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+							this.displayAroundEmptyCell(field, [i, j])
+						}
+					}
+				}
+			} else {
+				// первая строка без крайних ячеек
+				for (var i = centerRow; i <= centerRow + 1; i++) {
+					for (var j = centerCol - 1; j <= centerCol + 1; j++) {
+						var id = i + "-" + j;
+						if (this.userView[i][j] === 0) continue;
+						if (field[i][j] > 0) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+						} else if (field[i][j] === -1) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+							this.displayAroundEmptyCell(field, [i, j])
+						}
+					}
+				}				
+			}
+		} else if (centerRow + 1 === field.length) {
+			if (centerCol - 1 < 0) {
+				// первая ячейка последней строки
+				for (var i = centerRow; i >= centerRow - 1; i--) {
+					for (var j = centerCol; j <= centerCol + 1; j++) {
+						var id = i + "-" + j;
+						if (this.userView[i][j] === 0) continue;
+						if (field[i][j] > 0) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+						} else if (field[i][j] === -1) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+							this.displayAroundEmptyCell(field, [i, j])
+						}
+					}
+				}
+			} else if (centerCol + 1 === field[0].length) {
+				// последняя ячейка последней строки
+				for (var i = centerRow; i >= centerRow - 1; i--) {
+					for (var j = centerCol; j >= centerCol - 1; j--) {
+						var id = i + "-" + j;
+						if (this.userView[i][j] === 0) continue;
+						if (field[i][j] > 0) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+						} else if (field[i][j] === -1) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+							this.displayAroundEmptyCell(field, [i, j])
+						}
+					}
+				}
+			} else {
+				// последняя строка без крайних ячеек
+				for (var i = centerRow; i >= centerRow - 1; i--) {
+					for (var j = centerCol - 1; j <= centerCol + 1; j++) {
+						var id = i + "-" + j;
+						if (this.userView[i][j] === 0) continue;
+						if (field[i][j] > 0) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+						} else if (field[i][j] === -1) {
+							view.displayContent(field[i][j], id);
+							this.userView[i][j] = 0;
+							this.displayAroundEmptyCell(field, [i, j])
+						}
+					}
+				}
+			}
+		} else if (centerCol - 1 < 0) {
+			// первый столбец
+			for (var i = centerRow - 1; i <= centerRow + 1; i++) {
+				for (var j = centerCol; j <= centerCol + 1; j++) {
+					var id = i + "-" + j;
+					if (this.userView[i][j] === 0) continue;
+					if (field[i][j] > 0) {
+						view.displayContent(field[i][j], id);
+						this.userView[i][j] = 0;
+					} else if (field[i][j] === -1) {
+						view.displayContent(field[i][j], id);
+						this.userView[i][j] = 0;
+						this.displayAroundEmptyCell(field, [i, j])
+					}
+				}
+			}
+		} else if (centerCol + 1 === field[0].length) {
+			// последний столбец
+			for (var i = centerRow - 1; i <= centerRow + 1; i++) {
+				for (var j = centerCol; j >= centerCol - 1; j--) {
+					var id = i + "-" + j;
+					if (this.userView[i][j] === 0) continue;
+					if (field[i][j] > 0) {
+						view.displayContent(field[i][j], id);
+						this.userView[i][j] = 0;
+					} else if (field[i][j] === -1) {
+						view.displayContent(field[i][j], id);
+						this.userView[i][j] = 0;
+						this.displayAroundEmptyCell(field, [i, j])
+					}
+				}
+			}
+		} else {
+			// остальные строки и столбцы
+			for (var i = centerRow - 1; i <= centerRow + 1; i++) {
+				for (var j = centerCol - 1; j <= centerCol + 1; j++) {
+					var id = i + "-" + j;					
+					if (this.userView[i][j] === 0) continue;
+					if (field[i][j] > 0) {
+						view.displayContent(field[i][j], id);
+						this.userView[i][j] = 0;
+					} else if (field[i][j] === -1) {
+						view.displayContent(field[i][j], id);
+						this.userView[i][j] = 0;
+						this.displayAroundEmptyCell(field, [i, j])
+					}
+				}
+			}
+		}
+	},
 }
