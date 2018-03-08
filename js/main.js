@@ -161,8 +161,11 @@ function View() {
 	this.displayContent = function(content, id) {
 		var cell = document.getElementById(id);
 		if (content === 0) { // отображаем мину			
-			cell.classList.remove("hidden-cell");
+			cell.classList.remove("hidden-cell");			
 			cell.classList.add("mine");
+		} else if (content === 10) { // отображаем марикрованную мину
+			cell.classList.remove("hidden-cell");			
+			cell.classList.add("mark-mine");
 		} else if (content === -1) { // отображаем пустое поле		
 			cell.classList.remove("hidden-cell");
 		} else { // отображаем число		
@@ -222,9 +225,7 @@ function Model(row, col, mines, view) {
 	this.col = col; // Количество столбцов
 	this.mines = mines; // Количество мин на поле
 	this.minesPosition = []; // Позиции мин	
-	this.checkWin = function() { // Проверяем выиграл ли игрок		
-		console.log(countOpenCells);
-		console.log(this.row * this.col - countOpenCells);
+	this.checkWin = function() { // Проверяем выиграл ли игрок			
 		if ((this.row * this.col - countOpenCells) === this.mines) {
 			return true;
 		}
@@ -412,9 +413,14 @@ function Model(row, col, mines, view) {
 
 	this.openMines = function(minesPosition) {
 		for (var i = 0; i < minesPosition.length; i++) {
-			if (this.userView[minesPosition[i][0], [i][1] === 0]) continue; // Для пропуска первой открытой мины
 			var id = minesPosition[i][0] + "-" + minesPosition[i][1];
-			view.displayContent(0, id); // первый аргумент сообщает что это мина
+			if (this.userView[minesPosition[i][0]][minesPosition[i][1]] === 0) {
+				continue; // Для пропуска первой открытой мины
+			} else if (this.userView[minesPosition[i][0]][minesPosition[i][1]] === 1) {
+				view.displayContent(10, id); // первый аргумент сообщает что на мине стоит флаг
+			} else {
+				view.displayContent(0, id); // первый аргумент сообщает что на мине стоит флаг
+			}			
 		}
 	};
 

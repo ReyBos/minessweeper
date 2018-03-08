@@ -85,6 +85,10 @@ body {
 	background: url(../img/mine.jpg) center center/ contain no-repeat;
 }
 
+.mark-mine {
+	background: url(../img/mark-mine.jpg) center center/ contain no-repeat;
+}
+
 .text {
 	cursor: default;	
 }
