@@ -17,7 +17,7 @@ function newGame(row, col, mines) {
 	win = false;
 }
 
-// Данные в форме NEW GAME
+// Данные из формы NEW GAME
 var inputRow = document.getElementById("row");
 var inputRowValue = document.getElementById("row").value;
 var inputCol = document.getElementById("col");
@@ -103,7 +103,7 @@ inputCol.oninput = function() {
 
 inputMines.oninput = function() {	
 	inputMinesValue = inputMines.value;
-	if (inputMines.value < 1 || inputMines.value > maxMines) {
+	if (inputMines.value < 1 || inputMines.value > maxMines || document.getElementById("maxMines").innerHTML === "err") {
 		inputMines.classList.add("text-red");
 	} else if (inputMines.classList.contains("text-red")) {
 		inputMines.classList.remove("text-red");		
