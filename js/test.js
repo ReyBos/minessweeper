@@ -1,7 +1,7 @@
-model.filField(model.row, model.col);
+//model.filField(model.row, model.col);
 // console.log(model.field);
 
-view.displayField(model.field);
+//view.displayField(model.field);
 
 /*
 for (i = 0; i < 10; i++) {

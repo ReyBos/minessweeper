@@ -1,7 +1,43 @@
-var score = 0; // Количество ходов
-var happenedBang = false; // Взорвалась бомба
-var countOpenCells = 0;
-var win = false; // Игрок победил
+// Новая игра
+var score; // Количество ходов
+var happenedBang; // Взорвалась бомба
+var countOpenCells; // Количество открытых ячеек
+var win; // Игрок победил
+var model; // Игровая логика и данные
+var view = new View(); // Объект отвечающий за графику
+
+function newGame(row, col, mines) {	
+	model = new Model(row, col, mines, view);	
+	model.filField(model.row, model.col);	
+	view.displayField(model.field);
+	score = 0;
+	document.getElementById("score").innerHTML = score;
+	happenedBang = false; 
+	countOpenCells = 0; 
+	win = false;
+}
+
+// Данные в форме NEW GAME
+var inputRow = document.getElementById("row");
+var inputRowValue = document.getElementById("row").value;
+var inputCol = document.getElementById("col");
+var inputColValue = document.getElementById("col").value;
+var inputMines = document.getElementById("mines");
+var inputMinesValue = document.getElementById("mines").value;
+var maxMines = 90;
+
+// Страница загрузилась, создается новая игра
+window.onload = newGame(10, 10, 10);
+// Нажата кнопка "start"
+var buttonStart = document.getElementById("start");
+buttonStart.onclick = function() {
+	if (!inputRow.classList.contains("text-red") && !inputCol.classList.contains("text-red") && !inputMines.classList.contains("text-red")) {
+		document.getElementById("field").innerHTML = "";
+		newGame(inputRowValue, inputColValue, inputMinesValue, view);			
+	} else {
+		alert("You have entered incorrect data");
+	}
+};
 
 // Обработка левого щелчка мыши
 document.getElementById("field").onclick = function(e) {
@@ -29,14 +65,16 @@ document.getElementById("field").onclick = function(e) {
 	}	
 }
 
-// Определяем максимально возможное количество мин на поле (не более 90%)
-var inputRow = document.getElementById("row");
-var inputRowValue = document.getElementById("row").value;
-var inputCol = document.getElementById("col");
-var inputColValue = document.getElementById("col").value;
-var inputMines = document.getElementById("mines");
-var maxMines = 1;
+// Обработка правого щелчка мышью
+document.getElementById("field").oncontextmenu = function(e) {
+	var id = e.target.getAttribute("id");
+	if (id && !happenedBang && !win) {			
+		view.mark(id, splitId(id));
+	}	
+	return false;
+}
 
+// Определяем максимально возможное количество мин на поле (не более 90%)
 inputRow.oninput = function() {	
 	var result = document.getElementById("maxMines");
 	if (inputRow.value < 10 || inputRow.value > 30) {
@@ -44,7 +82,8 @@ inputRow.oninput = function() {
 		result.innerHTML = "err";
 	} else {
 		if(inputRow.classList.contains("text-red")) inputRow.classList.remove("text-red");
-		maxMines = inputRow.value * inputColValue * 0.9;
+		inputRowValue = inputRow.value;
+		maxMines = Math.floor(inputRow.value * inputColValue * 0.9);
 		result.innerHTML = "1-" + maxMines;
 	}	
 }
@@ -56,26 +95,19 @@ inputCol.oninput = function() {
 		result.innerHTML = "err";
 	} else {
 		if(inputCol.classList.contains("text-red")) inputCol.classList.remove("text-red");
-		maxMines= inputRowValue * inputCol.value * 0.9;
+		inputColValue = inputCol.value;
+		maxMines= Math.floor(inputRowValue * inputCol.value * 0.9);
 		result.innerHTML = "1-" + maxMines;
 	}	
 }
 
 inputMines.oninput = function() {	
+	inputMinesValue = inputMines.value;
 	if (inputMines.value < 1 || inputMines.value > maxMines) {
 		inputMines.classList.add("text-red");
 	} else if (inputMines.classList.contains("text-red")) {
-		inputMines.classList.remove("text-red");
+		inputMines.classList.remove("text-red");		
 	}
-}
-
-// Обработка правого щелчка мышью
-document.getElementById("field").oncontextmenu = function(e) {
-	var id = e.target.getAttribute("id");
-	if (id && !happenedBang && !win) {			
-		view.mark(id, splitId(id));
-	}	
-	return false;
 }
 
 // Получаем массив с номером строки и столбца из ID элемента
@@ -106,9 +138,9 @@ function splitId(id) {
 }
 
 // Объект отвечающий за графику
-var view = {
+function View() {
 	// Построение игрового поля в браузере передаем методу аргумент model.field	
-	displayField: function(field) {
+	this.displayField = function(field) {
 		var row = field.length;
 		var col = field[0].length;		
 		var msg;
@@ -123,10 +155,10 @@ var view = {
 			table.innerHTML += msg;
 		}
 		table.innerHTML += "<p class=\"game-info-content\">Field size: " + row + " x " + col + "</p><p class=\"game-info-content\">the number of mines: " + model.mines + "</p>";
-	},
+	};
 
 	// Отображает содержимое ячейки
-	displayContent: function(content, id) {
+	this.displayContent = function(content, id) {
 		var cell = document.getElementById(id);
 		if (content === 0) { // отображаем мину			
 			cell.classList.remove("hidden-cell");
@@ -165,10 +197,10 @@ var view = {
 			cell.innerHTML = msg;
 			cell.classList.remove("hidden-cell");			
 		}
-	},
+	};
 
 	// Отвечает за маркировку закрытой ячейки флагом
-	mark: function(id, position) {
+	this.mark = function(id, position) {
 		if (model.userView[position[0]][position[1]] === -1) {
 			// Если ячейка закрыта			
 			model.userView[position[0]][position[1]] = 1;
@@ -181,19 +213,22 @@ var view = {
 			var cell = document.getElementById(id);
 			cell.classList.remove("mark-cell");
 		}
-	}
+	};
 }
 
 // Игровая логика и данные
-var model = {
-	row: 10, // Количество строк
-	col: 10, // Количество столбцов
-	mines: 10, // Количество мин на поле
-	minesPosition: [], // Позиции мин	
-	checkWin: function() { // Проверяем выиграл ли игрок
-		if ((this.row * this.col - countOpenCells) === this.mines)
+function Model(row, col, mines, view) {
+	this.row = row; // Количество строк
+	this.col = col; // Количество столбцов
+	this.mines = mines; // Количество мин на поле
+	this.minesPosition = []; // Позиции мин	
+	this.checkWin = function() { // Проверяем выиграл ли игрок		
+		console.log(countOpenCells);
+		console.log(this.row * this.col - countOpenCells);
+		if ((this.row * this.col - countOpenCells) === this.mines) {
 			return true;
-	},
+		}
+	};
 
 	/* 
 		Массив field содержит игровое поле.
@@ -201,7 +236,7 @@ var model = {
 		1-:-8 - количество мин вокруг ячейки
 		-1 - в ячейке пусто и вокруг нет мин
 	*/
-	field: [],
+	this.field = [];
 
 	/*
 		В массиве userView хранится то, как поле видит игрок
@@ -209,10 +244,10 @@ var model = {
 		0  - ячейка открыта
 		1  - на ячейке установлен флаг 
 	*/
-	userView: [],
+	this.userView = [];
 
 	// Инициализируем массивы field и userView значениями -1. 
-	filField: function(row, col) {
+	this.filField = function(row, col) {
 		for(var i = 0; i < row; i++) {	
 			this.field[i] = [];	
 			this.userView[i] = [];	
@@ -221,10 +256,10 @@ var model = {
 				this.userView[i][j] = - 1;		
 			}			
 		}		
-	},
+	};
 
 	// Добавляем мины на поле 
-	addMines: function(mines, field, firstCell) { 		
+	this.addMines = function(mines, field, firstCell) { 		
 		var row = field.length;		
 		var col = field[0].length;			
 		var emptyCells = this.freeMinesCell(firstCell);		
@@ -248,10 +283,10 @@ var model = {
 		}		
 		// Определяем количество мин вокруг каждой ячейки
 		this.countMines(field);
-	},
+	};
 
 	// Вокруг ячейки по которой кликнули первой не будет мин
-	freeMinesCell: function(firstCell) {		
+	this.freeMinesCell = function(firstCell) {		
 		var emptyCells = [];
 		var row = Number(firstCell[0]);
 		var col = Number(firstCell[1]);
@@ -261,10 +296,10 @@ var model = {
 			}
 		}	
 		return emptyCells;
-	},
+	};
 
 	// Определяем количество мин вокруг каждой ячейки
-	countMines: function(field) {
+	this.countMines = function(field) {
 		var row = field.length;
 		var col = field[0].length;			
 		for (var i = 0; i < row; i++) {
@@ -348,10 +383,10 @@ var model = {
 				}
 			}
 		}
-	},
+	};
 
 	// Проверяем есть ли мина в данной ячейке и отображаем ее содержимое
-	checkCell: function(position, id) {
+	this.checkCell = function(position, id) {
 		var cellContent = this.field[position[0]][position[1]];		
 		if (cellContent === 0) { // если есть мина
 			view.displayContent(cellContent, id); // Отображаем
@@ -373,18 +408,18 @@ var model = {
 			countOpenCells++;
 			return false;
 		}
-	},
+	};
 
-	openMines: function(minesPosition) {
+	this.openMines = function(minesPosition) {
 		for (var i = 0; i < minesPosition.length; i++) {
 			if (this.userView[minesPosition[i][0], [i][1] === 0]) continue; // Для пропуска первой открытой мины
 			var id = minesPosition[i][0] + "-" + minesPosition[i][1];
 			view.displayContent(0, id); // первый аргумент сообщает что это мина
 		}
-	}, 
+	};
 
 	// Откываем ячейки вокруг пустой 
-	displayAroundEmptyCell: function(field, emptyCellPosition) {
+	this.displayAroundEmptyCell = function(field, emptyCellPosition) {
 		// Открытая пустая ячейка является центром квадрата 3х3 вокруг которого проверяем какие ячейки открыть
 		// Если соседняя ячейка пустая, то выполняем для нее эту же функцию
 		var centerRow = Number(emptyCellPosition[0]);
@@ -466,9 +501,9 @@ var model = {
 			endCol = centerCol + 1;
 			this.cycleForDisplayAroundEmptyCell(startRow, endRow, startCol, endCol, field);			
 		}
-	},
+	};
 
-	cycleForDisplayAroundEmptyCell: function(startRow, endRow, startCol, endCol, field) {
+	this.cycleForDisplayAroundEmptyCell = function(startRow, endRow, startCol, endCol, field) {
 		for (var i = startRow; i <= endRow; i++) {
 			for (var j = startCol; j <= endCol; j++) {
 				var id = i + "-" + j;									
@@ -485,5 +520,5 @@ var model = {
 				}
 			}
 		}
-	}
+	};
 }

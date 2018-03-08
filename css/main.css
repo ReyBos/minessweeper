@@ -1,16 +1,19 @@
 body {	
 	padding: 0;
-	margin: 0;
+	margin: 0;	
 }
 
 .home-screen {
-	background: url(../img/mines.jpg) center center/cover no-repeat;	
-	height: 100vh;		
+	background: url(../img/mines.jpg) top center/cover no-repeat;
+	height: auto;		
+	width: auto;
 }
 
 .h1 {		
 	font-size: 50px;
+	margin: 0;
 	margin-bottom: 30px;
+	padding-top: 30px;
 }
 
 .score {
@@ -21,7 +24,8 @@ body {
 }
 
 .container {
-	max-width: 900px;	
+	width: 900px;
+	min-height: 100vh;	
 	margin: 0 auto;
 	font-family: 'Stardos Stencil', cursive;
 	font-weight: 700;
@@ -47,8 +51,8 @@ body {
 }
 
 .cell {
-	width: 30px;
-	height: 30px;
+	width: 28px;
+	height: 28px;
 	display: inline-block;
 	border: 1px solid #676767;	
 	float: left;	
@@ -126,6 +130,7 @@ body {
 
 .form {
 	margin-top: 50px;
+	padding-bottom: 50px;
 }
 
 .form-title {
