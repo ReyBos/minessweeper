@@ -176,3 +176,7 @@ body {
 	color: #000;
 	cursor: pointer;
 }
+
+.text-red {
+	color: #f13842;
+}

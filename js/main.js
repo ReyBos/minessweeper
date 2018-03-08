@@ -1,4 +1,3 @@
-// Обработка левого щелчка мышью
 var score = 0; // Количество ходов
 var happenedBang = false; // Взорвалась бомба
 var countOpenCells = 0;
@@ -28,6 +27,46 @@ document.getElementById("field").onclick = function(e) {
 			}				
 		}
 	}	
+}
+
+// Определяем максимально возможное количество мин на поле (не более 90%)
+var inputRow = document.getElementById("row");
+var inputRowValue = document.getElementById("row").value;
+var inputCol = document.getElementById("col");
+var inputColValue = document.getElementById("col").value;
+var inputMines = document.getElementById("mines");
+var maxMines = 1;
+
+inputRow.oninput = function() {	
+	var result = document.getElementById("maxMines");
+	if (inputRow.value < 10 || inputRow.value > 30) {
+		inputRow.classList.add("text-red");
+		result.innerHTML = "err";
+	} else {
+		if(inputRow.classList.contains("text-red")) inputRow.classList.remove("text-red");
+		maxMines = inputRow.value * inputColValue * 0.9;
+		result.innerHTML = "1-" + maxMines;
+	}	
+}
+
+inputCol.oninput = function() {	
+	var result = document.getElementById("maxMines");
+	if (inputCol.value < 10 || inputCol.value > 30) {
+		inputCol.classList.add("text-red");
+		result.innerHTML = "err";
+	} else {
+		if(inputCol.classList.contains("text-red")) inputCol.classList.remove("text-red");
+		maxMines= inputRowValue * inputCol.value * 0.9;
+		result.innerHTML = "1-" + maxMines;
+	}	
+}
+
+inputMines.oninput = function() {	
+	if (inputMines.value < 1 || inputMines.value > maxMines) {
+		inputMines.classList.add("text-red");
+	} else if (inputMines.classList.contains("text-red")) {
+		inputMines.classList.remove("text-red");
+	}
 }
 
 // Обработка правого щелчка мышью
