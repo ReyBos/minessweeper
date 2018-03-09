@@ -2,7 +2,7 @@
 var score; // Количество ходов
 var happenedBang; // Взорвалась бомба
 var countOpenCells; // Количество открытых ячеек
-var win; // Игрок победил
+var win = false; // Игрок победил
 var model; // Игровая логика и данные
 var view = new View(); // Объект отвечающий за графику
 
@@ -55,13 +55,13 @@ document.getElementById("field").onclick = function(e) {
 				alert("Booooooooom!")
 			} else {
 				score++;	
-				document.getElementById("score").innerHTML = score;
-				win = model.checkWin();
+				document.getElementById("score").innerHTML = score;				
+				win = model.checkWin();				
 				if (win) {
 					alert("Congratulations, you won!")
 				}
 			}				
-		}
+		}		
 	}	
 }
 
@@ -225,9 +225,11 @@ function Model(row, col, mines, view) {
 	this.col = col; // Количество столбцов
 	this.mines = mines; // Количество мин на поле
 	this.minesPosition = []; // Позиции мин	
-	this.checkWin = function() { // Проверяем выиграл ли игрок			
-		if ((this.row * this.col - countOpenCells) === this.mines) {
+	this.checkWin = function() { // Проверяем выиграл ли игрок					
+		if ((this.row * this.col - countOpenCells) == this.mines) {			
 			return true;
+		} else {			
+			return false;
 		}
 	};
 
